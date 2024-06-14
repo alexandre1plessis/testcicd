@@ -5,6 +5,10 @@ on:
     branches-ignore:
       - main
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   create_pull_request_to_master:
     runs-on: ubuntu-latest
@@ -23,7 +27,7 @@ jobs:
         pr_label: "automerge"
 
   update_branches_from_master:
-    needs: create_pull_request_to_main
+    needs: create_pull_request_to_master
     runs-on: ubuntu-latest
     steps:
     - name: Checkout main branch
