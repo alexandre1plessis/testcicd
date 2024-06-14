@@ -6,10 +6,6 @@ on:
       - '*'
       - '!main'
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   create-pull-request:
     runs-on: ubuntu-latest
@@ -17,6 +13,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Fetch all branches
+        run: git fetch --all
+
+      - name: Checkout the branch
+        run: git checkout ${{ github.ref }}
+
+      - name: Merge main into the branch with unrelated histories
+        run: git merge origin/main --allow-unrelated-histories
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
@@ -28,7 +38,6 @@ jobs:
           body: |
             This pull request is auto-generated from changes pushed to `${{ github.ref }}`.
 
-          # Optional, customize as needed
           commit-message: 'Auto-commit from ${{ github.ref }}'
           delete-branch: true
           reviewers: |
