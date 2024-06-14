@@ -7,18 +7,21 @@ on:
     paths-ignore:
       - 'main'
 
+permissions:
+  contents: write
+
 jobs:
   update-main:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout source branch
-      uses: actions/checkout@v3
+      uses: actions/checkout@v2
       with:
         ref: ${{ github.ref }}
 
     - name: Checkout main branch
-      uses: actions/checkout@v3
+      uses: actions/checkout@v2
       with:
         ref: main
         path: main
