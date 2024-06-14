@@ -4,6 +4,14 @@ on:
   push:
     branches-ignore:
       - main
+  pull_request:
+    branches:
+      - main
+    types: [closed]
+
+permissions:
+  pull-requests: write
+  contents: write
 
 jobs:
   create_pull_request_to_main:
@@ -23,7 +31,7 @@ jobs:
         pr_label: "automerge"
 
   update_branches_from_main:
-    needs: create_pull_request_to_main
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
     - name: Checkout main branch
@@ -37,7 +45,7 @@ jobs:
         BRANCHES=$(git branch -r | grep -v 'main' | grep -v HEAD | sed 's/origin\///')
         for branch in $BRANCHES; do
           git checkout $branch
-          git merge origin/main
+          git merge origin/main --allow-unrelated-histories
           git push origin $branch
         done
       env:
