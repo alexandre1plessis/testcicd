@@ -20,7 +20,7 @@ jobs:
       with:
         source_branch: "${{ github.ref }}"
         destination_branch: "main"
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.PAT }}
         pr_title: "Update main with changes from ${{ github.ref }}"
         pr_body: "A new commit has been made to ${{ github.ref }}. This pull request is to update the main branch."
         pr_label: "automerge"
@@ -44,4 +44,4 @@ jobs:
           git push origin $branch
         done
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.PAT }}
