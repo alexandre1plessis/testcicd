@@ -30,7 +30,7 @@ jobs:
         git -C main merge ${{ github.ref }} --no-ff --commit --message "Merge from ${{ github.ref }}"
 
     - name: Push changes
-      run: |
-        git -C main push https://<PAT>@github.com/alexandre1plessis/testcicd.git main
       env:
         PAT: ${{ secrets.PAT }}
+      run: |
+        git -C main push https://${PAT}@github.com/alexandre1plessis/testcicd.git main
