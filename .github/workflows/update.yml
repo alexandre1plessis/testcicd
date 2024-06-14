@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  create_pull_request_to_master:
+  create_pull_request_to_main:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -22,7 +22,7 @@ jobs:
         pr_body: "A new commit has been made to ${{ github.ref }}. This pull request is to update the main branch."
         pr_label: "automerge"
 
-  update_branches_from_master:
+  update_branches_from_main:
     needs: create_pull_request_to_main
     runs-on: ubuntu-latest
     steps:
