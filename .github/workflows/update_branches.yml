@@ -21,6 +21,11 @@ jobs:
       with:
         ref: 'main'
 
+    - name: Configure Git user
+      run: |
+        git config --global user.email "you@example.com"
+        git config --global user.name "Your Name"
+
     - name: Update branches from main
       run: |
         git fetch origin
