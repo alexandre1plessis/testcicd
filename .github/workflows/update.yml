@@ -31,6 +31,6 @@ jobs:
 
     - name: Push changes
       run: |
-        git -C main push origin main
+        git -C main push https://<PAT>@github.com/alexandre1plessis/testcicd.git main
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PAT: ${{ secrets.PAT }}
