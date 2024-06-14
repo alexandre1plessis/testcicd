@@ -1,4 +1,4 @@
-name: Automatisation CI/CD
+name: Update branch when pull request
 
 on:
   pull_request:
