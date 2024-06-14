@@ -1,13 +1,9 @@
-name: Automatisation CI/CD
+name: Automerge Main on push
 
 on:
   push:
     branches-ignore:
       - main
-  pull_request:
-    branches:
-      - main
-    types: [closed]
 
 permissions:
   pull-requests: write
