@@ -1,55 +1,44 @@
-name: CI/CD Workflow
+name: Automatisation CI/CD
 
 on:
   push:
-    branches:
-      - '*'
-      - '!main'
-
-permissions:
-  pull-requests: write
-  contents: write
+    branches-ignore:
+      - main
 
 jobs:
-  create-pull-request:
+  create_pull_request_to_main:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
+    
+    - name: Create Pull Request to main
+      uses: repo-sync/pull-request@v2
+      with:
+        source_branch: "${{ github.ref }}"
+        destination_branch: "main"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        pr_title: "Update main with changes from ${{ github.ref }}"
+        pr_body: "A new commit has been made to ${{ github.ref }}. This pull request is to update the main branch."
+        pr_label: "automerge"
 
-      - name: Configure Git
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+  update_branches_from_main:
+    needs: create_pull_request_to_main
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout main branch
+      uses: actions/checkout@v2
+      with:
+        ref: 'main'
 
-      - name: Fetch all branches
-        run: git fetch --all
-
-      - name: Checkout the branch
-        run: git checkout ${{ github.ref }}
-
-      - name: Merge main into the branch with unrelated histories
-        run: git merge origin/main --allow-unrelated-histories
-
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          base: main
-          branch: ${{ github.ref }}
-          title: 'Auto-generated PR from ${{ github.ref }}'
-          body: |
-            This pull request is auto-generated from changes pushed to `${{ github.ref }}`.
-
-          commit-message: 'Auto-commit from ${{ github.ref }}'
-          delete-branch: true
-          reviewers: |
-            reviewer1
-            reviewer2
-          assignees: |
-            assignee1
-            assignee2
-          labels: |
-            auto-pr
-          draft: false
+    - name: Update branches from main
+      run: |
+        git fetch origin
+        BRANCHES=$(git branch -r | grep -v 'main' | grep -v HEAD | sed 's/origin\///')
+        for branch in $BRANCHES; do
+          git checkout $branch
+          git merge origin/main
+          git push origin $branch
+        done
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
