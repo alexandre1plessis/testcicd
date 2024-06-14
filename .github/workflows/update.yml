@@ -1,0 +1,44 @@
+name: Automatisation CI/CD
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  create_pull_request_to_master:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    
+    - name: Create Pull Request to main
+      uses: repo-sync/pull-request@v2
+      with:
+        source_branch: "${{ github.ref }}"
+        destination_branch: "main"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        pr_title: "Update main with changes from ${{ github.ref }}"
+        pr_body: "A new commit has been made to ${{ github.ref }}. This pull request is to update the main branch."
+        pr_label: "automerge"
+
+  update_branches_from_master:
+    needs: create_pull_request_to_main
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout main branch
+      uses: actions/checkout@v2
+      with:
+        ref: 'main'
+
+    - name: Update branches from main
+      run: |
+        git fetch origin
+        BRANCHES=$(git branch -r | grep -v 'main' | grep -v HEAD | sed 's/origin\///')
+        for branch in $BRANCHES; do
+          git checkout $branch
+          git merge origin/main
+          git push origin $branch
+        done
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
