@@ -1,48 +1,33 @@
-name: Automatisation CI/CD
+name: Update main branch
 
 on:
   push:
-    branches-ignore:
-      - main
-
-permissions:
-  contents: write
-  pull-requests: write
+    branches:
+      - '**'  # Déclenche le workflow sur toutes les branches sauf main
 
 jobs:
-  create_pull_request_to_master:
+  update-main:
     runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    
-    - name: Create Pull Request to main
-      uses: repo-sync/pull-request@v2
-      with:
-        source_branch: "${{ github.ref }}"
-        destination_branch: "main"
-        github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-        pr_title: "Update main with changes from ${{ github.ref }}"
-        pr_body: "A new commit has been made to ${{ github.ref }}. This pull request is to update the main branch."
-        pr_label: "automerge"
 
-  update_branches_from_master:
-    needs: create_pull_request_to_master
-    runs-on: ubuntu-latest
     steps:
+    - name: Checkout source branch
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ github.ref }}
+
     - name: Checkout main branch
       uses: actions/checkout@v2
       with:
-        ref: 'main'
+        ref: main
 
-    - name: Update branches from main
+    - name: Merge changes
       run: |
-        git fetch origin
-        BRANCHES=$(git branch -r | grep -v 'main' | grep -v HEAD | sed 's/origin\///')
-        for branch in $BRANCHES; do
-          git checkout $branch
-          git merge origin/main
-          git push origin $branch
-        done
-      env:
-        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git merge ${{ github.ref }} --no-ff --commit --message "Merge from ${{ github.ref }}"
+        
+    - name: Push changes
+      uses: ad-m/github-push-action@v0.6.0
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: main
