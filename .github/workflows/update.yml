@@ -1,40 +1,47 @@
-name: Update main branch
+name: Automatisation CI/CD
 
 on:
   push:
-    branches:
-      - '**'
-    paths-ignore:
-      - 'main'
+    branches-ignore:
+      - main
 
 permissions:
   contents: write
 
 jobs:
-  update-main:
+  create_pull_request_to_main:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout source branch
+    - name: Checkout code
       uses: actions/checkout@v2
+    
+    - name: Create Pull Request to main
+      uses: repo-sync/pull-request@v2
       with:
-        ref: ${{ github.ref }}
+        source_branch: "${{ github.ref }}"
+        destination_branch: "main"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        pr_title: "Update main with changes from ${{ github.ref }}"
+        pr_body: "A new commit has been made to ${{ github.ref }}. This pull request is to update the main branch."
+        pr_label: "automerge"
 
+  update_branches_from_main:
+    needs: create_pull_request_to_main
+    runs-on: ubuntu-latest
+    steps:
     - name: Checkout main branch
       uses: actions/checkout@v2
       with:
-        ref: main
-        path: main
+        ref: 'main'
 
-    - name: Merge changes
+    - name: Update branches from main
       run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git -C main merge ${{ github.ref }} --no-ff --commit --message "Merge from ${{ github.ref }}"
-
-    - name: Push changes
+        git fetch origin
+        BRANCHES=$(git branch -r | grep -v 'main' | grep -v HEAD | sed 's/origin\///')
+        for branch in $BRANCHES; do
+          git checkout $branch
+          git merge origin/main
+          git push origin $branch
+        done
       env:
-        PAT: ${{ secrets.PAT }}
-      run: |
-        git -C main remote set-url origin https://${{ secrets.PAT }}@github.com/alexandre1plessis/testcicd.git
-        git -C main push origin main
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
