@@ -33,5 +33,5 @@ jobs:
       env:
         PAT: ${{ secrets.PAT }}
       run: |
-        git -C main remote set-url origin https://${PAT}@github.com/alexandre1plessis/testcicd.git
+        git -C main remote set-url origin https://${{ secrets.PAT }}@github.com/alexandre1plessis/testcicd.git
         git -C main push origin main
