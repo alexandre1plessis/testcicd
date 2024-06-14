@@ -3,7 +3,9 @@ name: Update main branch
 on:
   push:
     branches:
-      - '**'  # Déclenche le workflow sur toutes les branches sauf main
+      - '**'
+    paths-ignore:
+      - 'main'
 
 jobs:
   update-main:
@@ -11,23 +13,24 @@ jobs:
 
     steps:
     - name: Checkout source branch
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         ref: ${{ github.ref }}
 
     - name: Checkout main branch
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         ref: main
+        path: main
 
     - name: Merge changes
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git merge ${{ github.ref }} --no-ff --commit --message "Merge from ${{ github.ref }}"
-        
+        git -C main merge ${{ github.ref }} --no-ff --commit --message "Merge from ${{ github.ref }}"
+
     - name: Push changes
-      uses: ad-m/github-push-action@v0.6.0
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: main
+      run: |
+        git -C main push origin main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
